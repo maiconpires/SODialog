@@ -1,0 +1,155 @@
+object Form1: TForm1
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 396
+  ClientWidth = 536
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object lstDescricoes: TListBox
+    Position.X = 8.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 281.000000000000000000
+    Size.Height = 380.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    DisableFocusEffect = True
+    Items.Strings = (
+      'Item 1'
+      'Item 2'
+      'Item 3'
+      'Item 4'
+      'Item 5'
+      'Item 6'
+      'Item 7')
+    DefaultItemStyles.ItemStyle = ''
+    DefaultItemStyles.GroupHeaderStyle = ''
+    DefaultItemStyles.GroupFooterStyle = ''
+    Viewport.Width = 277.000000000000000000
+    Viewport.Height = 376.000000000000000000
+  end
+  object btnDialog1: TButton
+    Position.X = 313.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 100.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Text = 'Show Dialog 1'
+    TextSettings.Trimming = None
+    OnClick = btnDialog1Click
+  end
+  object Dialog1: TRectangle
+    Fill.Color = claLightblue
+    Position.X = 320.000000000000000000
+    Position.Y = 67.000000000000000000
+    Size.Width = 201.000000000000000000
+    Size.Height = 105.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    object ScrollBox1: TScrollBox
+      Align = Client
+      Size.Width = 201.000000000000000000
+      Size.Height = 105.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Viewport.Width = 201.000000000000000000
+      Viewport.Height = 89.000000000000000000
+      object Label1: TLabel
+        Position.X = 8.000000000000000000
+        Position.Y = 16.000000000000000000
+        Text = 'Descri'#231#227'o: '
+        TabOrder = 0
+      end
+      object edtDescricao1: TEdit
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        TabOrder = 1
+        Position.X = 8.000000000000000000
+        Position.Y = 32.000000000000000000
+        Size.Width = 313.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+      end
+      object btnOk1: TButton
+        Position.X = 16.000000000000000000
+        Position.Y = 62.000000000000000000
+        TabOrder = 2
+        Text = 'Ok'
+        TextSettings.Trimming = None
+        OnClick = btnOk1Click
+      end
+      object btnCancel1: TButton
+        Position.X = 104.000000000000000000
+        Position.Y = 62.000000000000000000
+        TabOrder = 3
+        Text = 'Cancel'
+        TextSettings.Trimming = None
+        OnClick = btnCancel1Click
+      end
+    end
+  end
+  object btnDialog2: TButton
+    Position.X = 421.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 100.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 3
+    Text = 'Show Dialog 2'
+    TextSettings.Trimming = None
+    OnClick = btnDialog2Click
+  end
+  object Dialog2: TRectangle
+    Position.X = 320.000000000000000000
+    Position.Y = 187.000000000000000000
+    Size.Width = 201.000000000000000000
+    Size.Height = 89.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    object btnCancel2: TButton
+      Position.X = 104.000000000000000000
+      Position.Y = 61.000000000000000000
+      TabOrder = 3
+      Text = 'Cancel'
+      TextSettings.Trimming = None
+      OnClick = btnCancel2Click
+    end
+    object btnOk2: TButton
+      Position.X = 16.000000000000000000
+      Position.Y = 61.000000000000000000
+      TabOrder = 2
+      Text = 'Ok'
+      TextSettings.Trimming = None
+      OnClick = btnOk2Click
+    end
+    object edtDescricao2: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      TabOrder = 1
+      Position.X = 8.000000000000000000
+      Position.Y = 33.000000000000000000
+      Size.Width = 184.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+    end
+    object Label2: TLabel
+      Position.X = 8.000000000000000000
+      Position.Y = 12.000000000000000000
+      Text = 'Descri'#231#227'o: '
+      TabOrder = 0
+    end
+  end
+  object btnDialog3: TButton
+    Position.X = 313.000000000000000000
+    Position.Y = 35.000000000000000000
+    Size.Width = 100.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 5
+    Text = 'Show Dialog 3'
+    TextSettings.Trimming = None
+    OnClick = btnDialog3Click
+  end
+end
