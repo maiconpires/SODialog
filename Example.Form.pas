@@ -129,7 +129,7 @@ end;
 procedure TForm1.btnDialog3Click(Sender: TObject);
 begin
   D := TDialog
-        .New(lstDescricoes, TLayout(Dialog1))
+        .New(Form1, TLayout(Dialog1))
         .Title('Dialog 2')
         .OnShow(procedure (Dialog: IDialog) begin
           btnOk1.Default := True;
