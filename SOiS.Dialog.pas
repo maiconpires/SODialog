@@ -34,6 +34,7 @@ type
     function OnCurtainClick(AProc: TProc<IDialog>): IDialog;
     function Show(Animation: IDialogAnimation): IDialog;
     function Close: IDialog;
+    procedure Free;
 
     property Curtain: TRectangle read GetCurtain;
     property Stage: TRectangle read GetStage;
@@ -82,7 +83,7 @@ type
     constructor Create(AGlowEffect: Boolean=True);
   end;
 
-  TDialog = class(TComponent, IDialog)
+  TDialog = class(TInterfacedObject, IDialog)
   private
     FCurtain: TRectangle;
     FStage: TRectangle;
@@ -99,6 +100,7 @@ type
     function GetParentForm(Control: TFmxObject): TForm;
   strict private
     constructor Create(AInvoker: TFmxObject; AContent: TLayout); overload;
+    destructor Destroy; override;
   protected
     function GetCurtain: TRectangle;
     function GetStage: TRectangle;
@@ -115,6 +117,7 @@ type
     function Close: IDialog;
 
     class function New(AInvoker: TFmxObject; AContent: TLayout): IDialog; overload;
+    procedure Free;
 
     property Curtain: TRectangle read GetCurtain;
     property Stage: TRectangle read GetStage;
@@ -126,7 +129,7 @@ type
 
 implementation
 
-{ TDASlide }
+{$REGION 'TDASlide' }
 
 function TDASlide.CloseAnimation(ADialog: IDialog; AFinish: TProc<TFmxObject>): TAnimator;
 var
@@ -216,8 +219,9 @@ begin
 
   Log.d(Format('[%s.Show] From %2.f To %2.f', [Self.ClassName, ADialog.Stage.Position.X, LPosX]));
 end;
+{$ENDREGION}
 
-{ TDAPopup }
+{$REGION 'TDAPopup' }
 
 function TDAPopup.CloseAnimation(ADialog: IDialog; AFinish: TProc<TFmxObject>): TAnimator;
 begin
@@ -233,11 +237,11 @@ begin
       ADialog.Stage.Position.X := ADialog.InvokerBounds.Left + (ADialog.InvokerBounds.Width/2 - (ADialog.Stage.Width*ADialog.Stage.Scale.X) /2);
       ADialog.Stage.Position.Y := ADialog.InvokerBounds.Top + (ADialog.InvokerBounds.Height/2 - (ADialog.Stage.Height*ADialog.Stage.Scale.X) /2);
     end)
+    .OnFinish(AFinish)
     .Start;
 
-  TSOAnimator.Animate(ADialog.Curtain, 'Opacity', 0, 0.4)
-    .Delay(0.7)
-    .OnFinish(AFinish)
+  TSOAnimator.Animate(ADialog.Curtain, 'Opacity', 0, 0.6)
+    .Delay(0.4)
     .Start;
 
   Log.d(Format('[%s.Close] From %2.f To %2.f', [Self.ClassName, ADialog.Stage.Scale.X, 0.0]));
@@ -296,8 +300,82 @@ begin
 
   Log.d(Format('[%s.Show] From %2.f To %2.f', [Self.ClassName, ADialog.Stage.Scale.X, 1.0]));
 end;
+{$ENDREGION}
 
-{ TDialog }
+{$REGION 'TDAFade' }
+
+function TDAFade.CloseAnimation(ADialog: IDialog; AFinish: TProc<TFmxObject>): TAnimator;
+begin
+  if FEffect then
+    TSOAnimator.Animate(FGlow, 'Opacity', 0, 0.3).Start;
+
+  TSOAnimator.Animate(ADialog.Stage, 'Opacity', 0, 0.5)
+    .Delay(0.2)
+    .AnimationType(TAnimationType.Out)
+    .Interpolation(TInterpolationType.cubic)
+    .Start;
+  TSOAnimator.Animate(ADialog.Curtain, 'Opacity', 0, 0.4)
+    .Delay(0.3)
+    .OnFinish(AFinish)
+    .Start;
+
+  Log.d(Format('[%s.Close] (OPACITY) From %2.f To %2.f', [Self.ClassName, 1.0, 0.0]));
+
+end;
+
+constructor TDAFade.Create(AGlowEffect: Boolean);
+begin
+  FEffect := AGlowEffect;
+end;
+
+function TDAFade.ShowAnimation(ADialog: IDialog; AFinish: TProc<TFmxObject>): TAnimator;
+  procedure Prepare;
+  begin
+    With ADialog do begin
+      Curtain.Opacity := 0.01;
+      Curtain.Visible := True;
+      Content.Visible := True;
+      Stage.Opacity := 1;
+      Stage.Align := TAlignLayout.None;
+      Stage.Position.X := InvokerBounds.Left + (InvokerBounds.Width/2 - Stage.Width/2);
+      Stage.Position.Y := InvokerBounds.Top + (InvokerBounds.Height/2 - Stage.Height/2);
+      Stage.Opacity := 0.01;
+      Stage.Visible := True;
+
+      if FEffect then begin
+        FGlow := TGlowEffect.Create(Stage);
+        FGlow.Softness := 3;
+        FGlow.Opacity  := 0;
+        FGlow.GlowColor := TalphaColors.Gray;
+        FGlow.Parent := Stage;
+        FGlow.Enabled := true;
+      end;
+    end;
+  end;
+begin
+  Prepare;
+
+  TSOAnimator.Animate(ADialog.Curtain, 'opacity', 0.8, 0.5).Start;
+
+  TSOAnimator.Animate(ADialog.Stage, 'opacity', 1, 0.5)
+      .Delay(0.4)
+      .AnimationType(TAnimationType.Out)
+      .Interpolation(TInterpolationType.cubic)
+      .OnFinish(AFinish)
+      .Start;
+
+  if FEffect then
+    TSOAnimator.Animate(FGlow, 'opacity', 0.8, 2)
+        .Delay(1)
+        .AnimationType(TAnimationType.Out)
+        .Interpolation(TInterpolationType.Bounce)
+        .Start;
+
+  Log.d(Format('[%s.Show] (OPACITY) From %2.f To %2.f', [Self.ClassName, 0.01, 1.0]));
+end;
+{$ENDREGION}
+
+{$REGION 'TDialog' }
 
 function TDialog.Close: IDialog;
 var
@@ -305,9 +383,6 @@ var
   Form: TForm;
 begin
   Result := Self;
-
-  if Self.FOnClose<>nil then
-    Self.FOnClose(self);
 
   FAnimation.CloseAnimation(self,
     procedure (Obj: TFmxObject) begin
@@ -325,7 +400,13 @@ begin
       end;
       FContentBKP.Free;
       FContentBKP := nil;
-      Abort;
+      FTitleObj   := Nil;
+      FStage      := Nil;
+      FCurtain    := Nil;
+
+      if Self.FOnClose<>nil then
+        Self.FOnClose(self);
+
     end);
 
 end;
@@ -362,7 +443,7 @@ var
     FContent.Align := TAlignLayout.Center; // por causa da margem
   end;
 begin
-  if AContent = nil then raise Exception.Create(Format('[%s] View could not be NIL.',[UpperCase(Name)]));
+  if AContent = nil then raise Exception.Create('Content could not be NIL.');
 
   if AInvoker is TForm then begin
     LBounds := TRectF.Create(0, 0, TForm(AInvoker).Width, TForm(AInvoker).Height);
@@ -372,12 +453,12 @@ begin
     LBounds := TControl(AInvoker).BoundsRect;
   end;
 
-  inherited Create(Application.MainForm);
+//  inherited Create(Application.MainForm);
 
   FInvokerBounds := LBounds;
   FInvoker := AInvoker;
-  FCurtain := TRectangle.Create(Self);
-  FStage := TRectangle.Create(Self);
+  FCurtain := TRectangle.Create(AInvoker);
+  FStage := TRectangle.Create(AInvoker);
   FContent := AContent;
 
   TFmxObject(FContentBKP) := FContent.Clone(FContent.Owner);
@@ -389,10 +470,32 @@ begin
   Log.d(Format('[%s] Create', [AInvoker.Classname]));
 end;
 
+destructor TDialog.Destroy;
+begin
+  if FTitleObj <> nil then
+    FTitleObj.Free;
+
+  if FContentBKP <> nil then
+    FContentBKP.Free;
+
+  if FStage <> nil then
+    FStage.Free;
+
+  if FCurtain <> nil then
+    FCurtain.Free;
+
+  inherited;
+end;
+
 procedure TDialog.DoCurtainClick(Sender: TObject);
 begin
   if Assigned(FOnCurtainClick) then
     FOnCurtainClick(self);
+end;
+
+procedure TDialog.Free;
+begin
+  FreeAndNil(Self);
 end;
 
 function TDialog.GetInvoker: TFmxObject;
@@ -486,76 +589,6 @@ begin
   end
 
 end;
-{ TDAFade }
 
-function TDAFade.CloseAnimation(ADialog: IDialog; AFinish: TProc<TFmxObject>): TAnimator;
-begin
-  if FEffect then
-    TSOAnimator.Animate(FGlow, 'Opacity', 0, 0.3).Start;
-
-  TSOAnimator.Animate(ADialog.Stage, 'Opacity', 0, 0.5)
-    .Delay(0.2)
-    .AnimationType(TAnimationType.Out)
-    .Interpolation(TInterpolationType.cubic)
-    .Start;
-  TSOAnimator.Animate(ADialog.Curtain, 'Opacity', 0, 0.4)
-    .Delay(0.3)
-    .OnFinish(AFinish)
-    .Start;
-
-  Log.d(Format('[%s.Close] (OPACITY) From %2.f To %2.f', [Self.ClassName, 1.0, 0.0]));
-
-end;
-
-constructor TDAFade.Create(AGlowEffect: Boolean);
-begin
-  FEffect := AGlowEffect;
-end;
-
-function TDAFade.ShowAnimation(ADialog: IDialog; AFinish: TProc<TFmxObject>): TAnimator;
-  procedure Prepare;
-  begin
-    With ADialog do begin
-      Curtain.Opacity := 0.01;
-      Curtain.Visible := True;
-      Content.Visible := True;
-      Stage.Opacity := 1;
-      Stage.Align := TAlignLayout.None;
-      Stage.Position.X := InvokerBounds.Left + (InvokerBounds.Width/2 - Stage.Width/2);
-      Stage.Position.Y := InvokerBounds.Top + (InvokerBounds.Height/2 - Stage.Height/2);
-      Stage.Opacity := 0.01;
-      Stage.Visible := True;
-
-      if FEffect then begin
-        FGlow := TGlowEffect.Create(Stage);
-        FGlow.Softness := 3;
-        FGlow.Opacity  := 0;
-        FGlow.GlowColor := TalphaColors.Gray;
-        FGlow.Parent := Stage;
-        FGlow.Enabled := true;
-      end;
-    end;
-  end;
-begin
-  Prepare;
-
-  TSOAnimator.Animate(ADialog.Curtain, 'opacity', 0.8, 0.5).Start;
-
-  TSOAnimator.Animate(ADialog.Stage, 'opacity', 1, 0.5)
-      .Delay(0.4)
-      .AnimationType(TAnimationType.Out)
-      .Interpolation(TInterpolationType.cubic)
-      .OnFinish(AFinish)
-      .Start;
-
-  if FEffect then
-    TSOAnimator.Animate(FGlow, 'opacity', 0.8, 2)
-        .Delay(1)
-        .AnimationType(TAnimationType.Out)
-        .Interpolation(TInterpolationType.Bounce)
-        .Start;
-
-  Log.d(Format('[%s.Show] (OPACITY) From %2.f To %2.f', [Self.ClassName, 0.01, 1.0]));
-end;
-
+{$ENDREGION}
 end.

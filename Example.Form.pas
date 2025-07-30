@@ -69,7 +69,6 @@ procedure TForm1.btnOk1Click(Sender: TObject);
 begin
   if D <> nil then begin
     D.Close;
-    D := nil;
   end;
 end;
 
@@ -77,7 +76,6 @@ procedure TForm1.btnOk2Click(Sender: TObject);
 begin
   if D <> nil then begin
     D.Close;
-    D := nil;
   end;
 end;
 
@@ -97,6 +95,7 @@ begin
           edtDescricao1.Text := EmptyStr;
           btnOk1.Default := False;
           btnCancel1.Cancel := False;
+          D := nil;
         end)
         .OnCurtainClick(procedure (Dialog: IDialog) begin
           Dialog.Close;
@@ -118,6 +117,7 @@ begin
             lstDescricoes.Items.Add(edtDescricao2.Text);
             edtDescricao2.Text := EmptyStr;
           end;
+          D := nil;
         end)
         .OnCurtainClick(procedure (Dialog: IDialog) begin
           Dialog.Close;
@@ -142,6 +142,7 @@ begin
           edtDescricao1.Text := EmptyStr;
           btnOk1.Default := False;
           btnCancel1.Cancel := False;
+          D := nil;
         end)
         .OnCurtainClick(procedure (Dialog: IDialog) begin
           Dialog.Close;
